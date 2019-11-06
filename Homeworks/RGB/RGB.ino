@@ -2,7 +2,6 @@
 const int redPin = 11;
 const int greenPin = 10;
 const int bluePin = 9;
-const int soundPin = 7;
 
 // Analog input from the potentiometer
 const int potPinRed = A0;
@@ -20,8 +19,6 @@ void setup()
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
   pinMode(bluePin, OUTPUT);
-  pinMode(soundPin, OUTPUT);
-
 
   pinMode(potPinRed, INPUT);
   pinMode(potPinGreen, INPUT);
