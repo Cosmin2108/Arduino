@@ -2,8 +2,8 @@ const int buttonPin = 2;
 const int ledPin = 3;
 int lastButtonValue = 0;
 int state = 0;
-int debounceDelay = 50;
-int lastDebounceTime = 0;
+//int debounceDelay = 50;
+//int lastDebounceTime = 0;
 
 void setup() {
   pinMode(buttonPin, INPUT);
@@ -15,15 +15,13 @@ void loop() {
 
   int buttonValue = digitalRead(buttonPin);
 
-  if(buttonValue != lastButtonValue)
-    lastDebounceTime = millis();
+  //if(buttonValue != lastButtonValue)
+    //lastDebounceTime = millis();
 
     
   if(buttonValue == 0 ){
     lastButtonValue = 0; 
   }
-
-
   
   if(buttonValue == 1){ 
     
