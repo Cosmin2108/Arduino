@@ -2,8 +2,10 @@
 
 // knock
 const int knockPin = A0;
-const int intensity = 50;
-int knockValue = 60;
+const int intensity = 100;
+int knockValue = 0;
+int detected = 0;
+
 // LED
 const int ledPin = 2;
 int ledState = 0;
@@ -13,9 +15,7 @@ const int soundPin = 11;
 unsigned long currentTime = 0;
 int interval = 5000;
 unsigned long lastTime = 0;
-int soundVal = 500;
-int musicOn = 0;
-int ok = 0;
+int playing = 0;
 
 // notes in the melody:
 int melody[] = {
@@ -47,7 +47,7 @@ unsigned long lastTimeSound = 0;
 const int buttonPin = 3;
 int buttonState = 0;
 int lastButtonState = 0;
-int deboundeDelay = 50;
+int debounceDelay = 50;
 unsigned long lastDebounceTime = 0;
 
 
@@ -60,63 +60,62 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 
+  knockValue = analogRead(knockPin);
 
-
-  if(knockValue > intensity){
-    ledState = !ledState;
-    knockValue = 40;
+  if(knockValue > intensity && !detected){
+    ledState = 1;
+    detected = 1;
     digitalWrite(ledPin, ledState);
     lastTime = millis();
-    Serial.println("ma-ta");
-
   }
 
-  currentTime = millis();
+   if(detected){
+    currentTime = millis();
+   }
+    
   currentTimeSound = millis();
 
-  if(currentTime - lastTime > interval && !ok){
-    Serial.println("Second");
-    ok = 1;
+  if(currentTime - lastTime > interval && !playing){
+    playing = 1;
     ledState = 0;
     digitalWrite(ledPin, ledState);
-    musicOn = 1;
     lastTimeSound = currentTimeSound;
     tone(soundPin, melody[courentNote], noteDurations[courentNote]);  
   }
 
   ///simulate melody loop
-  if(musicOn && currentTimeSound - lastTimeSound > 10*15*noteDurations[courentNote] + pause[0]){
-    Serial.println("tone");
-
+  if(playing && currentTimeSound - lastTimeSound > 150*noteDurations[courentNote] + pause[0]){
     courentNote += 1;
     if(courentNote == 20)
       courentNote = 0;
     lastTimeSound = currentTimeSound;
-    tone(soundPin, melody[courentNote], 10*15*noteDurations[courentNote]);  
+    tone(soundPin, melody[courentNote], 150*noteDurations[courentNote]);  
   }
 
-  int reading = !digitalRead(buttonPin); //If the button is presed, then the value is 0,  so i'll make it 1 
 
+  int reading = !digitalRead(buttonPin); //If the button is presed, then the value is 0,  so I'll make it 1 
 
   if(lastButtonState != reading){
     lastDebounceTime = millis();
   }
 
-  if(millis() - lastDebounceTime > deboundeDelay){
+  if(millis() - lastDebounceTime > debounceDelay){
 
     if(reading != buttonState){
       buttonState = reading;
       
       if(reading == 1){
-        ledState = !ledState;
-        musicOn = !musicOn;
+        detected = 0;
+        courentNote = 0;
+        playing = 0;
         digitalWrite(ledPin, ledState);
        }
     }
   }
   
   lastButtonState = reading;
+
+  Serial.println(knockValue);
 
 }
