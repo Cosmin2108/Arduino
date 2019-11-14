@@ -2,7 +2,7 @@
 
 // knock
 const int knockPin = A0;
-const int intensity = 100;
+const int intensity = 2;
 int knockValue = 0;
 int detected = 0;
 
@@ -21,9 +21,9 @@ int playing = 0;
 int melody[] = {
   NOTE_E6, NOTE_DS6, 
   NOTE_E6, NOTE_DS6, NOTE_E6, NOTE_B5, NOTE_D6, NOTE_C6, 
-  NOTE_A3, NOTE_FS4, NOTE_B4, NOTE_C5, NOTE_E5, NOTE_A5,
+  NOTE_C4, NOTE_FS4, NOTE_B4, NOTE_D5, NOTE_E5, NOTE_AS5,
   NOTE_E3, NOTE_E4, NOTE_GS4, NOTE_E5, NOTE_GS5, NOTE_B5,
-  NOTE_A3, NOTE_FS4, NOTE_B4, NOTE_E5, NOTE_E6, NOTE_DS6
+  NOTE_C4, NOTE_FS4, NOTE_B4, NOTE_E5, NOTE_E6, NOTE_DS6
 };
 
 // note durations: 250 = quarter note, 125 = eighth note, etc.:
@@ -61,8 +61,10 @@ void setup() {
 
 void loop() {
 
-  knockValue = analogRead(knockPin);
-
+  if(!detected){
+    knockValue = analogRead(knockPin);
+  }
+    
   if(knockValue > intensity && !detected){
     ledState = 1;
     detected = 1;
@@ -76,7 +78,7 @@ void loop() {
     
   currentTimeSound = millis();
 
-  if(currentTime - lastTime > interval && !playing){
+  if(currentTime - lastTime > interval && !playing && detected){
     playing = 1;
     ledState = 0;
     digitalWrite(ledPin, ledState);
@@ -106,6 +108,7 @@ void loop() {
       buttonState = reading;
       
       if(reading == 1){
+        noTone(soundPin);
         detected = 0;
         courentNote = 0;
         playing = 0;
