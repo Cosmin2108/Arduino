@@ -249,6 +249,56 @@ void loop() {
      
     if(yAxis >= minThreshold && yAxis <= maxThreshold)
       dp_was_moved = 0;
+
+    int number = currentNumber;
+    int display_no = 0;
+    
+    if(currentNumber == 0){
+      int i = 0;
+ 
+      while(i < noOfDisplays){
+      
+        if(millis() - lastDrow > interval){        
+          select_digit(display_no);
+          
+          if(displayDP == display_no)     /// if current display is sellected, show DP
+            drow_digit(digit_chosen, dpState);
+          else
+            drow_digit(0, LOW);
+            
+          display_no++;
+          i++;
+          lastDrow = millis();
+          delay(1);
+        }
+      }
+    }
+    else{
+
+      int i = 0;
+     
+      while(number != 0 && i < noOfDisplays){
+        
+        if(millis() - lastDrow > interval){
+          int digit = number % 10;
+        
+          select_digit(display_no);
+          
+          if(displayDP == display_no)     /// if current display is sellected, show DP
+            drow_digit(digit_chosen, dpState);
+          else
+            drow_digit(digit, LOW);
+            
+          display_no ++;
+          number = number / 10;
+          lastDrow = millis();
+          i++;
+          delay(1);
+          
+        }
+      }
+    }
+  
     
     select_digit(displayDP);    
     drow_digit(digit_chosen, dpState);
