@@ -36,32 +36,140 @@ int score = currentLevel*3;
 
 /// Menu setings
 int startingLevel = 1;
-char player_name[20];
+char player_name[12] = "Player";
 
 int current_menu = 0;   /// max is 5. 0 - base menu, 1- highsc, 2- start, 3-setings, 4-set player_name, 5-set startlevel
-bool visible[] = {0, 0, 0, 0};
+bool visible[] = {0, 0, 0, 0, 0, 0};
 
 struct Selected{
   int l, c;
 };
 
 struct Record{
-  char player_name[20];
+  char player_name[12];
   int score;
 };
 
 
 Record record = {"Player", 0};
 
-Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0} };    /// first =  principal menu, second = Setings
+Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};    /// first =  principal menu, second = Setings
 
 
 void set_player_name(){
-  strcpy(player_name, "Player");
-  ///make something that set letters like previous homehork with numbers
-  lcd.print("Set name");
-  visible[current_menu] = 0; 
-  current_menu = 3;
+  lcd.cursor();
+
+  char *name_aux = (char*)malloc(12*sizeof(char));
+  int poz_in_name = 0;
+  name_aux[poz_in_name] = ' ';
+  name_aux[11] = '\0';
+  
+  char chr = 96;   /// a-1
+  bool locked = 1;
+  
+  while(locked){
+
+    yVal = analogRead(yAxis);
+    
+    if(!ymoved && yVal < bottomLimit){
+      chr--;
+      ymoved = 1;
+    }
+  
+    if(!ymoved && yVal > topLimit){
+      chr++;
+      ymoved = 1;
+    }
+
+    if(chr > 'z'){
+      chr = 'a';
+    }
+
+    if(chr < 'a'){
+      chr = 'z';
+    }
+
+    if(ymoved){
+      lcd.setCursor(poz_in_name, 0);
+      lcd.print(chr);
+      lcd.setCursor(poz_in_name, 0);
+    }
+    
+    if(yVal > bottomLimit && yVal < topLimit){
+      ymoved = 0;
+      name_aux[poz_in_name] = (char)chr;
+      Serial.println(name_aux);
+
+    }
+    
+     xVal = analogRead(xAxis);
+    
+    if(!xmoved && xVal < bottomLimit){
+      poz_in_name--;
+      xmoved = 1;
+    }
+  
+    if(!xmoved && xVal > topLimit){
+      poz_in_name++;
+      xmoved = 1;
+    }
+
+     if(poz_in_name > 10){
+      poz_in_name = 0;
+    }
+
+    if(poz_in_name < 0){
+      poz_in_name = 10;
+    }
+
+    if(xmoved){
+      lcd.setCursor(poz_in_name, 0);
+      chr = 96;   /// a-1
+      
+    }
+    
+    if(xVal > bottomLimit && xVal < topLimit){
+      if(name_aux[poz_in_name] < 'a' || name_aux[poz_in_name] > 'z' )
+      name_aux[poz_in_name] = ' ';
+      xmoved = 0;
+    }
+      
+
+    
+    int swState = !digitalRead(pinSW); //If the button is presed, then the value is 0,  so I'll make it 1 
+
+    if(lastButtonState != swState){
+      lastDebounceTime = millis();
+    }
+    
+    if(millis() - lastDebounceTime > debounceDelay){
+    
+      if(swState != buttonState){   ///if what i'm reading is different from buttonState
+        buttonState = swState;
+        
+        if(swState == 1){       /// make changes if what I'm reading is 1
+          Serial.println("Copiat");
+//          Serial.println(name_aux);
+          Serial.println(name_aux);
+          Serial.println(strlen(name_aux));
+
+          locked = 0;
+          if(strlen(name_aux) == 0)
+            strcpy(player_name, "Player");
+          else
+            strcpy(player_name, name_aux);
+            
+          visible[current_menu] = 0; 
+          current_menu = 3;
+          lcd.noCursor();
+          free(name_aux);
+          Serial.println(strlen(name_aux));
+
+        }
+      }
+    }
+    lastButtonState = swState;
+  }
 }
 
 void set_start_level(){
@@ -123,6 +231,7 @@ void set_start_level(){
 void print_menu(){
 
   lcd.clear();
+  lcd.setCursor(0, 0);
 
   if(current_menu == 0){
     
@@ -182,9 +291,7 @@ void print_menu(){
 
   }else
   if(current_menu == 4){
-
     set_player_name();
-    
   }
   else{
     
@@ -192,8 +299,6 @@ void print_menu(){
     
   }
     
-  
-  
 }
 
 int gameStart;
@@ -225,7 +330,7 @@ void play_game(){
      
   }
 
-  if(record.score < score){
+  if(record.score <= score){
     record.score = score;
     strcpy(record.player_name, player_name);
   }
@@ -233,13 +338,15 @@ void play_game(){
   lcd.clear();
   lcd.setCursor(16, 0);
   lcd.autoscroll();
-  char message[] = "Congratulations, you finished the game. Press button to exit";
+  char *message = (char*)malloc(70*sizeof(char));
+  strcpy(message, "Congratulations, you finished the game. Press button to exit");
   
   for(int j = 0; j< strlen(message); j++){
     lcd.print(message[j]);
     delay(250);
   }
 
+  free(message);
 //  for(int k = 0; k <= strlen(message)/16; k++){
 //    lcd.clear();
 //    lcd.setCursor(16, 0);
@@ -285,7 +392,6 @@ void setup() {
   pinMode(yAxis, INPUT);
   
   lcd.begin(16, 2);
-
 }
 
 
@@ -409,6 +515,7 @@ void loop() {
 
           if(selectedPos[current_menu].l == 0){
             current_menu = 4;   /// set name
+            Serial.println("Set name");
           }else
           if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 11){
              current_menu = 0;
