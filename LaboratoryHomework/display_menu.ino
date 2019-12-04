@@ -61,23 +61,28 @@ void set_player_name(){
 
   char *name_aux = (char*)malloc(12*sizeof(char));
   int poz_in_name = 0;
-  name_aux[poz_in_name] = ' ';
+  
+  for(int i=0; i<11; i++)
+    name_aux[i] = ' ';
+    
   name_aux[11] = '\0';
   
   char chr = 96;   /// a-1
   bool locked = 1;
-  
+  int ok = 0;
   while(locked){
 
     yVal = analogRead(yAxis);
     
     if(!ymoved && yVal < bottomLimit){
       chr--;
+      ok = 1;
       ymoved = 1;
     }
   
     if(!ymoved && yVal > topLimit){
       chr++;
+      ok = 1;
       ymoved = 1;
     }
 
@@ -96,21 +101,27 @@ void set_player_name(){
     }
     
     if(yVal > bottomLimit && yVal < topLimit){
-      ymoved = 0;
-      name_aux[poz_in_name] = (char)chr;
+      if(ok)
+        name_aux[poz_in_name] = (char)chr;
+      else
+        name_aux[poz_in_name] = ' ';
+        
       Serial.println(name_aux);
+      ymoved = 0;
 
     }
     
-     xVal = analogRead(xAxis);
+    xVal = analogRead(xAxis);
     
     if(!xmoved && xVal < bottomLimit){
       poz_in_name--;
+      ok = 0;
       xmoved = 1;
     }
   
     if(!xmoved && xVal > topLimit){
       poz_in_name++;
+      ok = 0;
       xmoved = 1;
     }
 
@@ -129,13 +140,9 @@ void set_player_name(){
     }
     
     if(xVal > bottomLimit && xVal < topLimit){
-      if(name_aux[poz_in_name] < 'a' || name_aux[poz_in_name] > 'z' )
-      name_aux[poz_in_name] = ' ';
       xmoved = 0;
     }
       
-
-    
     int swState = !digitalRead(pinSW); //If the button is presed, then the value is 0,  so I'll make it 1 
 
     if(lastButtonState != swState){
