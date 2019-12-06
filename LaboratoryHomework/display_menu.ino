@@ -37,7 +37,10 @@ int score = currentLevel*3;
 /// Menu setings
 int startingLevel = 1;
 char player_name[12] = "Player";
+char *name_aux;
+int poz_in_name;
 
+///Suport for navigate and print menu
 int current_menu = 0;   /// max is 5. 0 - base menu, 1- highsc, 2- start, 3-setings, 4-set player_name, 5-set startlevel
 bool visible[] = {0, 0, 0, 0, 0, 0};
 
@@ -45,22 +48,62 @@ struct Selected{
   int l, c;
 };
 
+Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};    /// first =  principal menu, second = Setings
+
+
+/// Score record
 struct Record{
   char player_name[12];
   int score;
 };
 
-
 Record record = {"Player", 0};
+bool inGame = 0;
 
-Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};    /// first =  principal menu, second = Setings
+/// For the game exit loop, set name loop and set lvl loop
+bool locked;
 
+void check_btn(void (*f)()){
+
+  int swState = !digitalRead(pinSW); //If the button is presed, then the value is 0,  so I'll make it 1 
+
+  if(lastButtonState != swState){
+    lastDebounceTime = millis();
+  }
+
+  if(millis() - lastDebounceTime > debounceDelay){
+
+    if(swState != buttonState){   ///if what i'm reading is different from buttonState
+      buttonState = swState;
+      
+      if(swState == 1){       /// make changes if what I'm reading is 1
+        (*f)();
+      }
+    }
+  }
+  
+  lastButtonState = swState;
+
+}
+
+void exit_set_player_name(){
+  locked = 0;
+  if(strcmp(name_aux, "           ") == 0)
+    strcpy(player_name, "Player");
+  else
+    strcpy(player_name, name_aux);
+    
+  visible[current_menu] = 0; 
+  current_menu = 3;
+  lcd.noCursor();
+  free(name_aux);
+}
 
 void set_player_name(){
   lcd.cursor();
 
-  char *name_aux = (char*)malloc(12*sizeof(char));
-  int poz_in_name = 0;
+  name_aux = (char*)malloc(12*sizeof(char));
+  poz_in_name = 0;
   
   for(int i=0; i<11; i++)
     name_aux[i] = ' ';
@@ -68,8 +111,9 @@ void set_player_name(){
   name_aux[11] = '\0';
   
   char chr = 96;   /// a-1
-  bool locked = 1;
+  locked = 1;
   int ok = 0;
+  
   while(locked){
 
     yVal = analogRead(yAxis);
@@ -142,46 +186,23 @@ void set_player_name(){
     if(xVal > bottomLimit && xVal < topLimit){
       xmoved = 0;
     }
+
+    check_btn(exit_set_player_name);
       
-    int swState = !digitalRead(pinSW); //If the button is presed, then the value is 0,  so I'll make it 1 
-
-    if(lastButtonState != swState){
-      lastDebounceTime = millis();
-    }
-    
-    if(millis() - lastDebounceTime > debounceDelay){
-    
-      if(swState != buttonState){   ///if what i'm reading is different from buttonState
-        buttonState = swState;
-        
-        if(swState == 1){       /// make changes if what I'm reading is 1
-          Serial.println("Copiat");
-//          Serial.println(name_aux);
-          Serial.println(name_aux);
-          Serial.println(strlen(name_aux));
-
-          locked = 0;
-          if(strlen(name_aux) == 0)
-            strcpy(player_name, "Player");
-          else
-            strcpy(player_name, name_aux);
-            
-          visible[current_menu] = 0; 
-          current_menu = 3;
-          lcd.noCursor();
-          free(name_aux);
-          Serial.println(strlen(name_aux));
-
-        }
-      }
-    }
-    lastButtonState = swState;
   }
 }
 
+
+void exit_start_lvl(){
+  locked = 0;
+  visible[current_menu] = 0; 
+  current_menu = 3;
+}
+
+
 void set_start_level(){
 
-  int locked = 1;
+  locked = 1;
   lcd.print(" ");
   lcd.print(startingLevel);
   while(locked){
@@ -212,26 +233,10 @@ void set_start_level(){
     
     if(yVal > bottomLimit && yVal < topLimit)
       ymoved = 0;
-    
-    int swState = !digitalRead(pinSW); //If the button is presed, then the value is 0,  so I'll make it 1 
-  
-    if(lastButtonState != swState){
-      lastDebounceTime = millis();
-    }
-  
-    if(millis() - lastDebounceTime > debounceDelay){
-    
-      if(swState != buttonState){   ///if what i'm reading is different from buttonState
-        buttonState = swState;
-        
-        if(swState == 1){       /// make changes if what I'm reading is 1
-          locked = 0;
-          visible[current_menu] = 0; 
-          current_menu = 3;
-        }
-      }
-    }
-    lastButtonState = swState;
+
+    /// check btn with fct for exit from set_start_lvl as parameter
+    check_btn(exit_start_lvl);
+
   }
 }
 
@@ -252,8 +257,7 @@ void print_menu(){
     lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
     lcd.print(">");
     
-  }
-  else
+  }else
   if(current_menu == 1){
      lcd.print(" ");
      lcd.print(record.player_name);
@@ -265,8 +269,7 @@ void print_menu(){
      selectedPos[current_menu].c = 0;
      visible[current_menu] = 1;
      
-  }
-   else
+  }else
   if(current_menu == 2){
     
      lcd.print(" ");
@@ -281,10 +284,11 @@ void print_menu(){
      lcd.print("Level ");
      lcd.print(startingLevel);
 
-     play_game();
+     inGame = 1;
+     	play_game();
+     inGame = 0;
      
-  }
-  else
+  }else
   if(current_menu == 3){
     
      lcd.print(" Enter name ");
@@ -308,13 +312,14 @@ void print_menu(){
     
 }
 
+
 int gameStart;
 int currentTime;
 int gameDuration = 11000;
 
 
 void play_game(){
-
+  
   gameStart = millis();
   currentTime = millis();
   currentLevel = startingLevel;
@@ -366,7 +371,7 @@ void play_game(){
   lcd.noAutoscroll();
   
   
-  int locked = 1;
+  locked = 1;
   while(locked){
     int swState = !digitalRead(pinSW); //If the button is presed, then the value is 0,  so I'll make it 1 
 
@@ -391,25 +396,61 @@ void play_game(){
   score = startingLevel*3;
 }
 
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(9600);
-  pinMode(pinSW, INPUT_PULLUP );
-  pinMode(xAxis, INPUT);
-  pinMode(yAxis, INPUT);
-  
-  lcd.begin(16, 2);
-}
 
+void change_menu(){
 
-void loop() {
+  if(current_menu == 0)
+    if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 0)
+      {
+        visible[current_menu] = 0;
+        current_menu = 2;     ///start     
+      }
+    else
+    if(selectedPos[current_menu].l == 0 && selectedPos[current_menu].c == 0)
+      {
+        visible[current_menu] = 0;
+        current_menu = 1;     ///hightscore    
+      }
+    else
+    if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 7)
+      {
+        visible[current_menu] = 0;
+        
+        current_menu = 3;     ///Setings   
+      }
+      
 
-  if(!visible[current_menu]){
-    print_menu();
+  if(current_menu == 1 && visible[current_menu] ){
+    visible[current_menu] = 0;  
+    current_menu = 0;     /// principal
+     
+  }
+
+  if(current_menu == 3  && visible[current_menu] ){
+    visible[current_menu] = 0;  
+
+    if(selectedPos[current_menu].l == 0){
+      current_menu = 4;   /// set name
+    }else
+    if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 11){
+       current_menu = 0;
+    }
+    else{
+      current_menu = 5;   /// set startlevel
+    }
+      
+  }
+
+  if((current_menu == 4 || current_menu == 5)  && visible[current_menu] ){
+    visible[current_menu] = 0;  
+    current_menu = 3;     /// principal 
   }
   
-  xVal = analogRead(xAxis);
+}
+
+void menu_navigate(){
   
+  /// X Axis
   if(!xmoved && (xVal < bottomLimit || xVal > topLimit)){
 
     if(current_menu == 0 && selectedPos[current_menu].l == 1){
@@ -442,8 +483,7 @@ void loop() {
     }
   }
 
-    
-  yVal = analogRead(yAxis);
+  /// Y Axis
   if(!ymoved && (yVal < bottomLimit || yVal > topLimit)){
    
     if(current_menu == 0 || current_menu == 3){
@@ -462,7 +502,6 @@ void loop() {
     
   }
 
-
   if(ymoved || xmoved){
     
     lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
@@ -476,74 +515,32 @@ void loop() {
   if(xVal > bottomLimit && xVal < topLimit)
     xmoved = 0;
 
+}
 
-  int swState = !digitalRead(pinSW); //If the button is presed, then the value is 0,  so I'll make it 1 
 
-  if(lastButtonState != swState){
-    lastDebounceTime = millis();
-  }
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+  pinMode(pinSW, INPUT_PULLUP );
+  pinMode(xAxis, INPUT);
+  pinMode(yAxis, INPUT);
+  
+  lcd.begin(16, 2);
+}
 
-  if(millis() - lastDebounceTime > debounceDelay){
 
-    if(swState != buttonState){   ///if what i'm reading is different from buttonState
-      buttonState = swState;
-      
-      if(swState == 1){       /// make changes if what I'm reading is 1
-        
-        if(current_menu == 0)
-          if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 0)
-            {
-              visible[current_menu] = 0;
-              current_menu = 2;     ///start     
-            }
-          else
-          if(selectedPos[current_menu].l == 0 && selectedPos[current_menu].c == 0)
-            {
-              visible[current_menu] = 0;
-              current_menu = 1;     ///hightscore    
-            }
-          else
-          if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 7)
-            {
-              visible[current_menu] = 0;
-              
-              current_menu = 3;     ///Setings   
-            }
-            
+void loop() {
 
-        if(current_menu == 1 && visible[current_menu] ){
-          visible[current_menu] = 0;  
-          current_menu = 0;     /// principal
-           
-        }
-
-        if(current_menu == 3  && visible[current_menu] ){
-          visible[current_menu] = 0;  
-
-          if(selectedPos[current_menu].l == 0){
-            current_menu = 4;   /// set name
-            Serial.println("Set name");
-          }else
-          if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 11){
-             current_menu = 0;
-          }
-          else{
-            current_menu = 5;   /// set startlevel
-          }
-            
-        }
-
-        if((current_menu == 4 || current_menu == 5)  && visible[current_menu] ){
-          visible[current_menu] = 0;  
-          current_menu = 3;     /// principal 
-        }
-        
-        Serial.println(current_menu);
-        
-      }
-    }
+  if(!visible[current_menu]){
+    print_menu();
   }
   
-  lastButtonState = swState;
-  
+  xVal = analogRead(xAxis);
+  yVal = analogRead(yAxis);
+
+  if(!inGame){
+    menu_navigate();
+    check_btn(change_menu);
+  }
+
 }
