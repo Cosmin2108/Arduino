@@ -306,6 +306,13 @@ void print_menu(){
     
 }
 
+bool pause = 0;
+
+
+void pause_game(){
+  pause = !pause;
+}
+
 void stop_game(){
   locked = 0;
   visible[current_menu] = 0; 
@@ -318,12 +325,19 @@ void play_real_game(){
   currentLives = lives;
   bool hit_car;
   bool printed = 1;
+  short int lastLevel = currentLevel;
+  short int lastLives = lives;
   
   while(currentLives != 0 && currentLevel <= levels){
 
     if(millis() - last_road_scroll > game_speed){
       printed = print_road();
       last_road_scroll = millis();
+    }
+    /// pause the game 
+    check_btn(pause_game);
+    while(pause){
+      check_btn(pause_game);
     }
     
     if(printed){
@@ -369,6 +383,19 @@ void play_real_game(){
     lcd.setCursor(15, 1);
     lcd.print(currentLevel);
 
+    if(currentLevel != lastLevel && currentLevel <= levels){
+      if(lastLives == currentLives){
+        currentLives++;
+        lcd.setCursor(6, 1);
+        lcd.print(currentLives);
+        lastLives = currentLives;
+      }
+      else
+        lastLives = currentLives;
+        
+      lastLevel = currentLevel;
+    }
+    
   }
 
   if(record.score <= score){

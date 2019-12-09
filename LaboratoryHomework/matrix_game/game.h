@@ -9,69 +9,91 @@ LedControl lc = LedControl(12, 11, 10, 1); //DIN, CLK, LOAD, No. DRIVER
 
 
 /// Start
-int levels = 3;
-int currentLevel = 1;
-int lives = 3;
-int currentLives = lives;
-int score = 0;
+short int levels = 3;
+short int currentLevel = 1;
+short int lives = 3;
+short int currentLives = lives;
+short int score = 0;
 
 /// For setings
-int startingLevel = 1; /// INITIAL
+short int startingLevel = 1; /// INITIAL
 
 struct Car{
-  int left_coord = 3;
-  int car_length = 4;
-  int car_width = 3;
+  short int left_coord = 3;
+  short int car_length = 4;
+  short int car_width = 3;
   
-  int car[8][8]= {
+  bool car[8][8]= {
                   {0, 0, 0, 0, 0, 0, 0, 0},
-                  {0, 0, 0, 0, 0, 0, 0, 0},
-                  {0, 0, 0, 0, 1, 0, 0, 0},
-                  {0, 0, 0, 1, 1, 1, 0, 0},
-                  {0, 0, 0, 0, 1, 0, 0, 0},
-                  {0, 0, 0, 1, 1, 1, 0, 0},
-                  {0, 0, 0, 0, 0, 0, 0, 0},
-                  {0, 0, 0, 0, 0, 0, 0, 0} 
-                  
-                  };
-  int aux[8][8]= {
                   {0, 0, 0, 0, 0, 0, 0, 0},
                   {0, 0, 0, 0, 0, 0, 0, 0},
                   {0, 0, 0, 0, 1, 0, 0, 0},
                   {0, 0, 0, 1, 1, 1, 0, 0},
                   {0, 0, 0, 0, 1, 0, 0, 0},
                   {0, 0, 0, 1, 1, 1, 0, 0},
+                  {0, 0, 0, 0, 0, 0, 0, 0}
+                 };
+                 
+  bool aux[8][8]= {
                   {0, 0, 0, 0, 0, 0, 0, 0},
-                  {0, 0, 0, 0, 0, 0, 0, 0} 
-                  
-                  };
+                  {0, 0, 0, 0, 0, 0, 0, 0},
+                  {0, 0, 0, 0, 0, 0, 0, 0},
+                  {0, 0, 0, 0, 1, 0, 0, 0},
+                  {0, 0, 0, 1, 1, 1, 0, 0},
+                  {0, 0, 0, 0, 1, 0, 0, 0},
+                  {0, 0, 0, 1, 1, 1, 0, 0},
+                  {0, 0, 0, 0, 0, 0, 0, 0}
+                 };
 
 }car;
 
 long long int last_road_scroll = 0;
-int game_speed = 800;
-
-const int road_length = 25;
+short int game_speed = 750;
+short int repeat = 2;
+const short int road_length = 48;
  
-int road[road_length][8]= {
-                  {1, 0, 1, 0, 1, 0, 1, 0},
-                  {0, 1, 0, 1, 0, 1, 0, 1},
+bool road[road_length][8]= {
                   {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 1, 0, 0, 0, 0, 1},
                   {1, 1, 0, 0, 0, 0, 1, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 1, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 1, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 1, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 1, 1, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 1, 1, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 1, 1, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 1, 0, 0, 0, 0, 1},
                   {1, 1, 0, 0, 0, 0, 1, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 1, 0, 0, 0, 0, 0, 1},
-                  {1, 0, 0, 0, 0, 0, 1, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 1, 0, 0, 0, 0, 0, 1},
-                  {1, 0, 0, 0, 0, 0, 1, 1},
-                  {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 1, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
@@ -79,15 +101,16 @@ int road[road_length][8]= {
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1}
+
                                           };  
 
-int offset = road_length;
+short int offset = road_length;
 
 bool colision(){
   
   bool hit = 0; /// hit car
-  int k = offset - 2;
-  for(int i = 5; i >= 2 && !hit; i--){
+  int k = offset - 1;
+  for(int i = 6; i >= 3 && !hit; i--){
     for(int j = car.left_coord; j< car.left_coord + car.car_width; j++){
         if(road[k][j] == 1 && road[k][j] == car.car[i][j])
           hit = 1;
@@ -143,7 +166,7 @@ bool move_car(int dir){
   
   if(dir == -1){ /// stg
 
-    for( i = 2; i< 2 + car.car_length; i++){
+    for( i = 3; i< 3 + car.car_length; i++){
       for( j= car.left_coord - 1; j < car.left_coord + car.car_width - 1; j++){
         car.car[i][j] = car.car[i][j + 1];
       }
@@ -153,7 +176,7 @@ bool move_car(int dir){
     car.left_coord --;
   }else{
 
-    for( i = 2; i< 2 + car.car_length; i++){
+    for( i = 3; i< 3 + car.car_length; i++){
       for( j= car.left_coord + car.car_width; j >= car.left_coord  + 1; j--){
         car.car[i][j] = car.car[i][j - 1];
       }
@@ -176,13 +199,18 @@ bool print_road(){
 
   offset--;
   
-  if(offset == 6){
+  if(offset == 6 && repeat != 0){    /// the beginning and the end of the road are identical to simulate a loop that is repeated  'repeat' time
+    repeat --;
+    offset = road_length - 1 - 9; 
+  }
+
+  if(repeat == 0){
+    repeat = 3;
     currentLevel++;
     /// increase speed
     game_speed = game_speed - (game_speed/10)*4;
     offset = road_length - 1; 
   }
-  
 
   if(colision()){
     delete_prev_car();
