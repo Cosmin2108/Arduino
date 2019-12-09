@@ -1,21 +1,19 @@
 #include "LedControl.h" //  need the library
 LedControl lc = LedControl(12, 11, 10, 1); //DIN, CLK, LOAD, No. DRIVER
 
-
 // pin 12 is connected to the MAX7219 pin 1
 // pin 11 is connected to the CLK pin 13
 // pin 10 is connected to LOAD pin 12
 // 1 as we are only using 1 MAX7219
 
-
-/// Start
+///For start display
 short int levels = 3;
 short int currentLevel = 1;
 short int lives = 3;
 short int currentLives = lives;
 short int score = 0;
 
-/// For setings
+/// For setings menu
 short int startingLevel = 1; /// INITIAL
 
 struct Car{
@@ -50,6 +48,7 @@ struct Car{
 long long int last_road_scroll = 0;
 short int game_speed = 750;
 short int repeat = 2;
+bool pause = 0;
 const short int road_length = 48;
  
 bool road[road_length][8]= {
@@ -101,8 +100,7 @@ bool road[road_length][8]= {
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1}
-
-                                          };  
+                 };  
 
 short int offset = road_length;
 
@@ -230,4 +228,8 @@ bool print_road(){
   }
 
   return 1; ///printed
+}
+
+void pause_game(){
+  pause = !pause;
 }

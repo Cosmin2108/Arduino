@@ -1,8 +1,8 @@
 #include <LiquidCrystal.h> // includes the LiquidCrystal Library
 #include <EEPROM.h>
 #include "game.h"
-/// LCD Display pins
 
+/// LCD Display pins
 const int RS = 8;
 const int enable = 9;
 const int d4 = 5;
@@ -304,13 +304,6 @@ void print_menu(){
     
   }
     
-}
-
-bool pause = 0;
-
-
-void pause_game(){
-  pause = !pause;
 }
 
 void stop_game(){
