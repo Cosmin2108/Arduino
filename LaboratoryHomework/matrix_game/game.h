@@ -48,6 +48,7 @@ struct Car{
 
 }car;
 
+long long int last_road_scroll = 0;
 int game_speed = 800;
 
 const int road_length = 25;
@@ -80,13 +81,13 @@ int road[road_length][8]= {
                   {1, 0, 0, 0, 0, 0, 0, 1}
                                           };  
 
-int offset = road_length - 1;
+int offset = road_length;
 
 bool colision(){
   
   bool hit = 0; /// hit car
   int k = offset - 2;
-  for(int i = 5; i >= 2 && k > offset - car.car_length  && !hit; i--){
+  for(int i = 5; i >= 2 && !hit; i--){
     for(int j = car.left_coord; j< car.left_coord + car.car_width; j++){
         if(road[k][j] == 1 && road[k][j] == car.car[i][j])
           hit = 1;
@@ -99,35 +100,6 @@ bool colision(){
 
 }
 
-bool print_road(){
-
-  if(colision()){
-    Serial.println("Hit");
-    return 0;  /// not printed
-  }
-
-  score++;
-  
-  int k = offset;
-  for(int i = 7; i >= 0 && k >= offset - 7; i--){
-    for(int j = 0; j< 8; j++){
-      lc.setLed(0, i, j, road[k][j]);
-    }
-
-    k--;
-  }
-
-  offset--;
-  if(offset == 6){
-    currentLevel++;
-    /// increase speed
-    game_speed = game_speed - game_speed/10;
-    offset = road_length - 1; 
-  }
-  
-  return 1; ///printed
-}
-
 
 void print_car(){
 
@@ -137,14 +109,30 @@ void print_car(){
         lc.setLed(0, i, j, HIGH);
     }
   }
-  
+}
+
+void delete_prev_car(){
+  for(int i = 0; i < 8; i++){
+    for(int j = 0; j< 8; j++){
+      if(car.car[i][j])
+        lc.setLed(0, i, j, LOW);
+    }
+  }
+}
+
+void reset_car_pos(){
+    for(int i = 0; i < 8; i++)
+      for(int j = 0; j< 8; j++)
+        car.car[i][j] = car.aux[i][j];
+    car.left_coord = 3;
 }
 
 
 bool move_car(int dir){
+
+  delete_prev_car();
+  
   int i, j;
-//Serial.print("Coord left: ");
-//Serial.println(car.left_coord);
   if(dir == -1 && car.left_coord - 1 <= 0 ){
     return 1;
   }
@@ -176,9 +164,42 @@ bool move_car(int dir){
   }
 
   if(colision()){
+    reset_car_pos();
     return 1;  /// hit
   }
 
   return 0;
+}
+
+
+bool print_road(){
+
+  offset--;
   
+  if(offset == 6){
+    currentLevel++;
+    /// increase speed
+    game_speed = game_speed - (game_speed/10)*4;
+    offset = road_length - 1; 
+  }
+  
+
+  if(colision()){
+    delete_prev_car();
+    reset_car_pos();
+    return 0;  /// not printed
+  }
+
+  score++;
+  
+  int k = offset;
+  for(int i = 7; i >= 0 && k >= offset - 7; i--){
+    for(int j = 0; j< 8; j++){
+      lc.setLed(0, i, j, road[k][j]);
+    }
+
+    k--;
+  }
+
+  return 1; ///printed
 }

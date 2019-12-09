@@ -1,4 +1,5 @@
 #include <LiquidCrystal.h> // includes the LiquidCrystal Library
+#include <EEPROM.h>
 #include "game.h"
 /// LCD Display pins
 
@@ -50,15 +51,12 @@ Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};    /// first
 struct Record{
   char player_name[12];
   int score;
-};
+}record;
 
-Record record = {"Player", 0};
 bool inGame = 0;
 
 /// For the game exit loop, set name loop and set lvl loop
 bool locked;
-
-
 
 
 void check_btn(void (*f)()){
@@ -95,6 +93,7 @@ void exit_set_player_name(){
   current_menu = 3;
   lcd.noCursor();
   free(name_aux);
+  Serial.println(player_name);
 }
 
 void set_player_name(){
@@ -146,7 +145,8 @@ void set_player_name(){
       if(ok)
         name_aux[poz_in_name] = (char)chr;
       else
-        name_aux[poz_in_name] = ' ';
+        if(name_aux[poz_in_name] == ' ')
+          name_aux[poz_in_name] = ' ';
         
       Serial.println(name_aux);
       ymoved = 0;
@@ -167,7 +167,7 @@ void set_player_name(){
       xmoved = 1;
     }
 
-     if(poz_in_name > 10){
+    if(poz_in_name > 10){
       poz_in_name = 0;
     }
 
@@ -306,19 +306,11 @@ void print_menu(){
     
 }
 
-
-int gameStart;
-int currentTime;
-int gameDuration = 11000;
-
 void stop_game(){
   locked = 0;
   visible[current_menu] = 0; 
   current_menu = 0;
 }
-
-
-long long int last_road_scroll = 0;
 
 void play_real_game(){
 
@@ -334,12 +326,8 @@ void play_real_game(){
       last_road_scroll = millis();
     }
     
-    print_car();
-
-    hit_car = 0;
-    
     if(printed){
-
+      hit_car = 0;
       xVal = analogRead(xAxis);
       
       if(!xmoved && xVal < bottomLimit){
@@ -360,10 +348,11 @@ void play_real_game(){
         currentLives --;
         lcd.setCursor(6, 1);
         lcd.print(currentLives);
-        /// reset road and CAR POSITION !!! and make car blinking faster for the first 3 second to mark reset lvl
         offset = road_length-1;
         last_road_scroll = 0;
       }
+
+      print_car();
 
       lcd.setCursor(7, 0);
       lcd.print(score);
@@ -372,10 +361,9 @@ void play_real_game(){
        currentLives--;
        lcd.setCursor(6, 1);
        lcd.print(currentLives);
-       /// reset road and make car blinking faster for the first 3 second to mark reset lvl
        offset = road_length-1;
-
-       printed = 1;
+       printed = print_road();
+       print_car();
     }
 
     lcd.setCursor(15, 1);
@@ -386,6 +374,24 @@ void play_real_game(){
   if(record.score <= score){
     record.score = score;
     strcpy(record.player_name, player_name);
+
+    union Data
+    {
+      unsigned int a;
+      unsigned char s[4];
+    };
+  
+    union Data object;
+  
+    object.a = score;
+    
+    for(int i=0; i<4; i++)  /// write score at adress 0
+      EEPROM.write(i, object.s[i]);
+        
+    for(int i=5; i<17; i++)
+      EEPROM.write(i, record.player_name[i-5]);
+      
+    ///Also need to write name of the player
   }
   
   lcd.clear();
@@ -403,6 +409,7 @@ void play_real_game(){
   
   last_road_scroll = 0;
   score = 0;
+  game_speed = 800;
   lc.clearDisplay(0);// clear screen
 
 }
@@ -545,6 +552,23 @@ void setup() {
   pinMode(yAxis, INPUT);
 
   lcd.begin(16, 2);
+
+  union Data
+  {
+    unsigned int a;
+    unsigned char s[4];
+  };
+
+  union Data object;
+  
+  for(int i=0; i<4; i++)
+    object.s[i] = EEPROM.read(i);
+  
+  record.score = object.a;
+  
+  for(int i=5; i<17; i++)
+    record.player_name[i-5] = (char)EEPROM.read(i);
+  
 }
 
 void loop() {
