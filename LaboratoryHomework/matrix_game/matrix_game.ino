@@ -39,7 +39,7 @@ short int poz_in_name;
 
 ///Suport for navigate and print menu
 short int current_menu = 0;   /// max is 5. 0 - base menu, 1- highsc, 2- start, 3-setings, 4-set player_name, 5-set startlevel
-bool visible[] = {0, 0, 0, 0, 0, 0};
+bool visible[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 struct Selected{
   short int l, c;
@@ -54,10 +54,6 @@ struct Record{
   short int score;
 }record;
 
-bool inGame = 0;
-
-/// For the game exit loop, set name loop and set lvl loop
-bool locked;
 short int contrast = 360;
 
 void check_btn(void (*f)()){
@@ -243,7 +239,7 @@ void print_menu(){
 
   lcd.clear();
   lcd.setCursor(0, 0);
-
+  Serial.println(current_menu);
   if(current_menu == 0){
     
     lcd.setCursor((16 - strlen("HighScore"))/2, 0);
@@ -258,6 +254,8 @@ void print_menu(){
     
   }else
   if(current_menu == 1){
+     selectedPos[current_menu].c = 0;
+     selectedPos[current_menu].l = 1;
      lcd.print(" ");
      lcd.print(record.player_name);
      lcd.print(" ");
@@ -271,9 +269,7 @@ void print_menu(){
      
   }else
   if(current_menu == 2){
-    
-     lcd.print(" ");
-     lcd.print("Score ");
+         lcd.print(" Score ");
      lcd.print(score);
      
      lcd.setCursor(0,1);
@@ -283,6 +279,7 @@ void print_menu(){
      lcd.setCursor(strlen("Lives ")+3,1);
      lcd.print("Level ");
      lcd.print(startingLevel);
+     visible[current_menu] = 1; 
           
   }else
   if(current_menu == 3){
@@ -300,10 +297,38 @@ void print_menu(){
   }else
   if(current_menu == 4){
     set_player_name();
-  }
-  else{
+  }else
+  if(current_menu == 5){
     
     set_start_level();
+    
+  }else
+  if(current_menu == 6){    
+    selectedPos[current_menu].c = 0;
+    selectedPos[current_menu].l = 1;
+    lcd.setCursor(2, 0);
+    lcd.print("Game over!");
+    lcd.setCursor(1, 1);
+    lcd.print("Exit");
+    lcd.setCursor(7, 1);
+    lcd.print("Try Again");
+    lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
+    lcd.print(">");
+    visible[current_menu] = 1;
+  }else
+  if(current_menu == 7){
+    selectedPos[current_menu].c = 0;
+    selectedPos[current_menu].l = 1;
+    lcd.setCursor(1, 0);
+    lcd.print("Exit & Save");
+    lcd.setCursor(1, 1);
+    lcd.print("Replay");
+    lcd.setCursor(9, 1);
+    lcd.print("Reset");
+    visible[current_menu] = 1;
+    lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
+    lcd.print(">");
+    visible[current_menu] = 1;
     
   }
     
@@ -311,29 +336,39 @@ void print_menu(){
 
 void stop_game(){
   locked = 0;
-  visible[current_menu] = 0; 
-  current_menu = 0;
+  last_road_scroll = 0;
+  score = 0;
+  game_speed = 800;
+  lc.clearDisplay(0);// clear screen
+}
+
+void reset_game(){
+  pause = !pause;
+  last_road_scroll = 0;
+  score = 0;
+  game_speed = 800;
+  currentLevel = startingLevel;
+  currentLives = lives;
+  printed = 1;
+  lastLevel = currentLevel;
+  lastLives = lives;
+  lc.clearDisplay(0);// clear screen
 }
 
 void play_real_game(){
 
   currentLevel = startingLevel;
   currentLives = lives;
-  bool hit_car;
-  bool printed = 1;
-  short int lastLevel = currentLevel;
-  short int lastLives = lives;
+  hit_car;
+  printed = 1;
+  lastLevel = currentLevel;
+  lastLives = lives;
   
   while(currentLives != 0 && currentLevel <= levels){
 
     if(millis() - last_road_scroll > game_speed){
       printed = print_road();
       last_road_scroll = millis();
-    }
-    /// pause the game 
-    check_btn(pause_game);
-    while(pause){
-      check_btn(pause_game);
     }
     
     if(printed){
@@ -358,7 +393,7 @@ void play_real_game(){
         currentLives --;
         lcd.setCursor(6, 1);
         lcd.print(currentLives);
-        offset = road_length-1;
+        offset = road_length;
         last_road_scroll = 0;
       }
 
@@ -371,9 +406,10 @@ void play_real_game(){
        currentLives--;
        lcd.setCursor(6, 1);
        lcd.print(currentLives);
-       offset = road_length-1;
+       offset = road_length;
        printed = print_road();
        print_car();
+       last_road_scroll = 0;
     }
 
     lcd.setCursor(15, 1);
@@ -391,7 +427,24 @@ void play_real_game(){
         
       lastLevel = currentLevel;
     }
+
+    /// pause the game 
+    check_btn(pause_game); 
     
+    if(pause){
+      visible[current_menu] = 0; 
+      current_menu = 7;     ///Pause
+      
+      if(!visible[current_menu])
+        print_menu(); 
+    }
+    
+    while(pause){
+      xVal = analogRead(xAxis);
+      yVal = analogRead(yAxis);
+      menu_navigate();
+      check_btn(change_menu);
+    }
   }
 
   if(record.score <= score){
@@ -411,30 +464,26 @@ void play_real_game(){
     for(int i=0; i<4; i++)  /// write score at adress 0
       EEPROM.write(i, object.s[i]);
         
-    for(int i=5; i<16; i++)
+    for(int i=5; i<16; i++)      /// write name of the player
       EEPROM.write(i, record.player_name[i-5]);
       
-    ///Also need to write name of the player
   }
+
+  visible[current_menu] = 0; 
+  current_menu = 6;     ///Game over
   
-  lcd.clear();
-  lcd.setCursor(2, 0);
-  lcd.print("Game over!");
-  lcd.setCursor(4, 1);
-  lcd.print(">Exit");
-  
+  if(!visible[current_menu])
+    print_menu();  
+    
   locked = 1;
   while(locked){
-    
-    check_btn(stop_game);
+
+    xVal = analogRead(xAxis);
+    yVal = analogRead(yAxis);
+    menu_navigate();
+    check_btn(change_menu);
     
   }
-  
-  last_road_scroll = 0;
-  score = 0;
-  game_speed = 800;
-  lc.clearDisplay(0);// clear screen
-
 }
 
 
@@ -494,7 +543,38 @@ void change_menu(){
 
   if((current_menu == 4 || current_menu == 5)  && visible[current_menu] ){
     visible[current_menu] = 0;  
-    current_menu = 3;     /// principal 
+    current_menu = 3;     /// settings
+  }
+
+  if(current_menu == 6 && visible[current_menu]){
+    if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 0){
+      visible[current_menu] = 0;  
+      current_menu = 0;     /// principal
+      inGame = 0;
+    }else{
+      visible[current_menu] = 0;
+      current_menu = 2;     ///start  
+      inGame = 1;
+    }
+    stop_game();
+  }
+
+  if(current_menu == 7 && visible[current_menu]){
+    if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 0){
+      visible[current_menu] = 0;
+      current_menu = 2;     ///start
+      print_menu(); 
+      pause_game();
+    }else
+    if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 8){
+      visible[current_menu] = 0;
+      current_menu = 2;     ///start  
+      print_menu();
+      reset_game();
+    }
+    else{
+      /// Save & Exit
+    }
   }
   
 }
@@ -503,7 +583,6 @@ void menu_navigate(){
   
   /// X Axis
   if(!xmoved && (xVal < bottomLimit || xVal > topLimit)){
-
     if(current_menu == 0 && selectedPos[current_menu].l == 1){
       lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
       lcd.print(" ");
@@ -533,7 +612,7 @@ void menu_navigate(){
 
       xmoved = 1;
     }else
-    if(current_menu == 1){
+    if(current_menu == 1 && selectedPos[current_menu].l == 1){
       lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
       lcd.print(" ");
       
@@ -542,6 +621,30 @@ void menu_navigate(){
         selectedPos[current_menu].l = 1;
       }
       else{
+        selectedPos[current_menu].c = 0;
+        selectedPos[current_menu].l = 1;
+      }
+      xmoved = 1;
+    }else
+    if(current_menu == 6){
+      lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
+      lcd.print(" ");
+      if(selectedPos[current_menu].c == 0){
+        selectedPos[current_menu].c = 6;
+        selectedPos[current_menu].l = 1;
+      }else{
+        selectedPos[current_menu].c = 0;
+        selectedPos[current_menu].l = 1;
+      }
+      xmoved = 1;
+    }else
+    if(current_menu == 7){
+      lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
+      lcd.print(" ");
+      if(selectedPos[current_menu].c == 0){
+        selectedPos[current_menu].c = 8;
+        selectedPos[current_menu].l = 1;
+      }else{
         selectedPos[current_menu].c = 0;
         selectedPos[current_menu].l = 1;
       }
@@ -574,7 +677,6 @@ void menu_navigate(){
 
 
   if(ymoved || xmoved){
-    
     lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
     lcd.print(">");
    
@@ -634,9 +736,7 @@ void loop() {
   yVal = analogRead(yAxis);
 
   if(inGame){
-    /// MOdify position in game based on what I read in xVal, yVal
     play_real_game();
-    inGame = 0;
   }
   
   if(!inGame){

@@ -47,9 +47,17 @@ struct Car{
 }car;
 
 long long int last_road_scroll = 0;
-float game_speed = 750/currentLevel;
+float game_speed = 800/currentLevel;
 short int repeat = 2;
 bool pause = 0;
+bool hit_car;
+bool printed = 1;
+short int lastLevel = currentLevel;
+short int lastLives = lives;
+bool inGame = 0;
+
+/// For the game exit loop, set name loop and set lvl loop
+bool locked;
 const short int road_length = 48;
  
 bool road[road_length][8]= {
@@ -156,10 +164,14 @@ bool move_car(int dir){
   
   int i, j;
   if(dir == -1 && car.left_coord - 1 <= 0 ){
+    delete_prev_car();
+    reset_car_pos();
     return 1;
   }
   else
   if(dir == 1 && (car.left_coord + car.car_width -1 ) + 1 >= 7 ){
+    delete_prev_car();
+    reset_car_pos();
     return 1;
   }
   
@@ -186,6 +198,7 @@ bool move_car(int dir){
   }
 
   if(colision()){
+    delete_prev_car();
     reset_car_pos();
     return 1;  /// hit
   }
