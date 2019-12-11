@@ -6,15 +6,16 @@ LedControl lc = LedControl(12, 11, 10, 1); //DIN, CLK, LOAD, No. DRIVER
 // pin 10 is connected to LOAD pin 12
 // 1 as we are only using 1 MAX7219
 
-///For start display
-short int levels = 3;
-short int currentLevel = 1;
-short int lives = 3;
-short int currentLives = lives;
-short int score = 0;
 
 /// For setings menu
 short int startingLevel = 1; /// INITIAL
+
+///For start display
+short int levels = 3;
+short int currentLevel = startingLevel;
+short int lives = 3;
+short int currentLives = lives;
+short int score = 0;
 
 struct Car{
   short int left_coord = 3;
@@ -46,7 +47,7 @@ struct Car{
 }car;
 
 long long int last_road_scroll = 0;
-short int game_speed = 750;
+float game_speed = 750/currentLevel;
 short int repeat = 2;
 bool pause = 0;
 const short int road_length = 48;
@@ -206,7 +207,7 @@ bool print_road(){
     repeat = 3;
     currentLevel++;
     /// increase speed
-    game_speed = game_speed - (game_speed/10)*4;
+    game_speed = 750/currentLevel;
     offset = road_length - 1; 
   }
 

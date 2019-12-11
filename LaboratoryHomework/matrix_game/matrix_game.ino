@@ -4,7 +4,7 @@
 
 /// LCD Display pins
 const int RS = 8;
-const int enable = 9;
+const int enable = 13;
 const int d4 = 5;
 const int d5 = 4;
 const int d6 = 3;
@@ -13,6 +13,7 @@ const int d7 = 2;
 const int pinSW = 7;
 const int xAxis = A0;
 const int yAxis = A1;
+const int VO = 9;
 
 LiquidCrystal lcd(RS, enable, d4, d5, d6, d7);
 
@@ -22,42 +23,42 @@ const int topLimit = 700;
 const int bottomLimit = 300;
 bool xmoved = 0;
 bool ymoved = 0;
-int xVal, yVal;
+short int xVal, yVal;
 
 //Joystik button
-int buttonState = 0;
-int lastButtonState = 0;
-int debounceDelay = 50;
+bool buttonState = 0;
+bool lastButtonState = 0;
+short int debounceDelay = 50;
 unsigned long lastDebounceTime = 0;
 bool swState = 0;
 
 /// Menu setings
-char player_name[12] = "Player";
+char player_name[11] = "Player";
 char *name_aux;
-int poz_in_name;
+short int poz_in_name;
 
 ///Suport for navigate and print menu
-int current_menu = 0;   /// max is 5. 0 - base menu, 1- highsc, 2- start, 3-setings, 4-set player_name, 5-set startlevel
+short int current_menu = 0;   /// max is 5. 0 - base menu, 1- highsc, 2- start, 3-setings, 4-set player_name, 5-set startlevel
 bool visible[] = {0, 0, 0, 0, 0, 0};
 
 struct Selected{
-  int l, c;
+  short int l, c;
 };
 
-Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};    /// first =  principal menu, second = Setings
-
+Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};    /// 0 =  principal menu, 1= high score, 2 = start,
+/// 3 = settings, 4 = Set Name, 5= Set Level, 6 = Game over, 7 = Pause
 
 /// Score record
 struct Record{
-  char player_name[12];
-  int score;
+  char player_name[11];
+  short int score;
 }record;
 
 bool inGame = 0;
 
 /// For the game exit loop, set name loop and set lvl loop
 bool locked;
-
+short int contrast = 360;
 
 void check_btn(void (*f)()){
 
@@ -84,7 +85,7 @@ void check_btn(void (*f)()){
 
 void exit_set_player_name(){
   locked = 0;
-  if(strcmp(name_aux, "           ") == 0)
+  if(strcmp(name_aux, "          ") == 0)
     strcpy(player_name, "Player");
   else
     strcpy(player_name, name_aux);
@@ -99,13 +100,13 @@ void exit_set_player_name(){
 void set_player_name(){
   lcd.cursor();
 
-  name_aux = (char*)malloc(12*sizeof(char));
+  name_aux = (char*)malloc(11*sizeof(char));
   poz_in_name = 0;
   
-  for(int i=0; i<11; i++)
+  for(int i=0; i<10; i++)
     name_aux[i] = ' ';
     
-  name_aux[11] = '\0';
+  name_aux[10] = '\0';
   
   char chr = 96;   /// a-1
   locked = 1;
@@ -167,12 +168,12 @@ void set_player_name(){
       xmoved = 1;
     }
 
-    if(poz_in_name > 10){
+    if(poz_in_name > 9){
       poz_in_name = 0;
     }
 
     if(poz_in_name < 0){
-      poz_in_name = 10;
+      poz_in_name = 9;
     }
 
     if(xmoved){
@@ -250,7 +251,7 @@ void print_menu(){
     lcd.setCursor(1,1);
     lcd.print("Start");
     lcd.setCursor(strlen("Start") + 3, 1);
-    lcd.print("Setings");
+    lcd.print("Settings");
     visible[current_menu] = 1;
     lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
     lcd.print(">");
@@ -262,9 +263,10 @@ void print_menu(){
      lcd.print(" ");
      lcd.print(record.score);
      lcd.setCursor(0, 1);
-     lcd.print(">Exit");
-     selectedPos[current_menu].l = 1;
-     selectedPos[current_menu].c = 0;
+     lcd.print(" Reset");
+     lcd.print("  Exit");
+     lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
+     lcd.print(">");
      visible[current_menu] = 1;
      
   }else
@@ -285,9 +287,10 @@ void print_menu(){
   }else
   if(current_menu == 3){
     
-     lcd.print(" Enter name ");
+     lcd.print(" Name:");
+     lcd.print(player_name);
      lcd.setCursor(0,1);
-     lcd.print(" Set_lvl:");
+     lcd.print(" Level:");
      lcd.print(startingLevel);
      lcd.print("  Exit");
      visible[current_menu] = 1;
@@ -408,7 +411,7 @@ void play_real_game(){
     for(int i=0; i<4; i++)  /// write score at adress 0
       EEPROM.write(i, object.s[i]);
         
-    for(int i=5; i<17; i++)
+    for(int i=5; i<16; i++)
       EEPROM.write(i, record.player_name[i-5]);
       
     ///Also need to write name of the player
@@ -460,9 +463,18 @@ void change_menu(){
       
 
   if(current_menu == 1 && visible[current_menu] ){
-    visible[current_menu] = 0;  
-    current_menu = 0;     /// principal
-     
+
+    if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 0){
+      strcpy(record.player_name, "Player");
+      record.score = 0;
+      for (int i = 0 ; i < EEPROM.length() ; i++) {
+        EEPROM.write(i, 0);
+      }
+      print_menu();
+    }else{
+      visible[current_menu] = 0;  
+      current_menu = 0;     /// principal
+    }
   }
 
   if(current_menu == 3  && visible[current_menu] ){
@@ -471,7 +483,7 @@ void change_menu(){
     if(selectedPos[current_menu].l == 0){
       current_menu = 4;   /// set name
     }else
-    if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 11){
+    if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 9){
        current_menu = 0;
     }
     else{
@@ -509,8 +521,9 @@ void menu_navigate(){
     if(current_menu == 3 && selectedPos[current_menu].l == 1){
       lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
       lcd.print(" ");
+      
       if(selectedPos[current_menu].c == 0){
-        selectedPos[current_menu].c = 11;
+        selectedPos[current_menu].c = 9;
         selectedPos[current_menu].l = 1;
       }
       else{
@@ -518,6 +531,20 @@ void menu_navigate(){
         selectedPos[current_menu].l = 1;
       }
 
+      xmoved = 1;
+    }else
+    if(current_menu == 1){
+      lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
+      lcd.print(" ");
+      
+      if(selectedPos[current_menu].c == 0){
+        selectedPos[current_menu].c = 7;
+        selectedPos[current_menu].l = 1;
+      }
+      else{
+        selectedPos[current_menu].c = 0;
+        selectedPos[current_menu].l = 1;
+      }
       xmoved = 1;
     }
   }
@@ -527,7 +554,7 @@ void menu_navigate(){
    
     if(current_menu == 0 || current_menu == 3){
         lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
-        lcd.print(" ");
+        lcd.print(" ");                                                            ///delete last position
         if( selectedPos[current_menu].l == 0){
           selectedPos[current_menu].c = 0;
           selectedPos[current_menu].l = 1;
@@ -537,7 +564,11 @@ void menu_navigate(){
           selectedPos[current_menu].l = 0;
         }
         ymoved = 1;
+    }else
+    if(current_menu == 1){
+      /// scroll trought highscoresS
     }
+    
     
   }
 
@@ -572,7 +603,7 @@ void setup() {
   pinMode(yAxis, INPUT);
 
   lcd.begin(16, 2);
-
+  analogWrite(VO, contrast);
   union Data
   {
     unsigned int a;
@@ -586,9 +617,11 @@ void setup() {
   
   record.score = object.a;
   
-  for(int i=5; i<17; i++)
+  for(int i=5; i<16; i++)
     record.player_name[i-5] = (char)EEPROM.read(i);
-  
+
+  if(strlen(record.player_name) < 1)
+    strcpy(record.player_name, "Player");
 }
 
 void loop() {
