@@ -1,4 +1,4 @@
-#include <LiquidCrystal.h> // includes the LiquidCrystal Library
+ #include <LiquidCrystal.h> // includes the LiquidCrystal Library
 #include <EEPROM.h>
 #include "game.h"
 
@@ -352,6 +352,8 @@ void reset_game(){
   printed = 1;
   lastLevel = currentLevel;
   lastLives = lives;
+  offset = road_length;
+  last_road_scroll = 0;
   lc.clearDisplay(0);// clear screen
 }
 
@@ -569,10 +571,11 @@ void change_menu(){
     if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 8){
       visible[current_menu] = 0;
       current_menu = 2;     ///start  
-      print_menu();
       reset_game();
+      print_menu();
     }
     else{
+      
       /// Save & Exit
     }
   }
