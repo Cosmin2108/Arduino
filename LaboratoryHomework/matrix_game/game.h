@@ -46,6 +46,19 @@ struct Car{
 
 }car;
 
+/// Score record
+struct Record{
+  char player_name[11];
+  short int score;
+}record[3];
+
+short int printedHighScore = 0;
+
+/// Menu setings
+char player_name[11] = "Player    ";
+char *name_aux;
+short int poz_in_name;
+
 long long int last_road_scroll = 0;
 float game_speed = 800/currentLevel;
 short int repeat = 2;
@@ -246,4 +259,75 @@ bool print_road(){
 
 void pause_game(){
   pause = !pause;
+}
+
+
+void print_over(){
+  lc.clearDisplay(0);
+  lc.setLed(0, 1, 2, 1);
+  lc.setLed(0, 2, 2, 1);
+
+  lc.setLed(0, 1, 5, 1);
+  lc.setLed(0, 2, 5, 1);
+
+  for(int i = 1; i < 7; i++)
+    lc.setLed(0, 5, i, 1);
+
+}
+
+short int find_low_score(){
+
+  if(record[0].score == record[1].score && record[1].score == record[2].score)
+    return 0;
+  
+  short int mx =  max(record[0].score, max(record[1].score, record[2].score));
+  short int poz;
+  if(score <= record[1].score)
+    return 0;
+  else
+  if(score <= record[0].score)
+    return 1;
+  else
+    return 2;
+}
+
+
+void check_score(){
+
+    if(record[2].score <= score){
+
+      short int poz = find_low_score();   /// low score that can be replaced with new score
+      
+      record[poz].score = score;
+      strcpy(record[poz].player_name, player_name);
+  
+      union Data
+      {
+        unsigned int a;
+        unsigned char s[4];
+      };
+    
+      union Data object;
+    
+      object.a = score;
+      short int adress;
+      if(poz == 0)
+        adress = 0;
+      else
+      if(poz == 1)
+        adress = 17;
+      else
+        adress = 34;
+      
+      for(int i=0; i<4; i++){  /// write score at adress 0
+        EEPROM.write(adress, object.s[i]);
+        adress++;
+      }
+      
+      for(int i=5; i<16; i++){      /// write name of the player
+        EEPROM.write(adress, record[poz].player_name[i-5]);
+        adress++;
+      }
+  }
+  
 }

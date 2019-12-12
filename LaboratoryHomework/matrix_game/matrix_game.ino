@@ -32,11 +32,6 @@ short int debounceDelay = 50;
 unsigned long lastDebounceTime = 0;
 bool swState = 0;
 
-/// Menu setings
-char player_name[11] = "Player";
-char *name_aux;
-short int poz_in_name;
-
 ///Suport for navigate and print menu
 short int current_menu = 0;   /// max is 5. 0 - base menu, 1- highsc, 2- start, 3-setings, 4-set player_name, 5-set startlevel
 bool visible[] = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -47,12 +42,6 @@ struct Selected{
 
 Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};    /// 0 =  principal menu, 1= high score, 2 = start,
 /// 3 = settings, 4 = Set Name, 5= Set Level, 6 = Game over, 7 = Pause
-
-/// Score record
-struct Record{
-  char player_name[11];
-  short int score;
-}record;
 
 short int contrast = 360;
 
@@ -165,11 +154,11 @@ void set_player_name(){
     }
 
     if(poz_in_name > 9){
-      poz_in_name = 0;
+      poz_in_name = 9;
     }
 
     if(poz_in_name < 0){
-      poz_in_name = 9;
+      poz_in_name = 0;
     }
 
     if(xmoved){
@@ -257,9 +246,9 @@ void print_menu(){
      selectedPos[current_menu].c = 0;
      selectedPos[current_menu].l = 1;
      lcd.print(" ");
-     lcd.print(record.player_name);
+     lcd.print(record[0].player_name);
      lcd.print(" ");
-     lcd.print(record.score);
+     lcd.print(record[0].score);
      lcd.setCursor(0, 1);
      lcd.print(" Reset");
      lcd.print("  Exit");
@@ -448,35 +437,18 @@ void play_real_game(){
       check_btn(change_menu);
     }
   }
-
-  if(record.score <= score){
-    record.score = score;
-    strcpy(record.player_name, player_name);
-
-    union Data
-    {
-      unsigned int a;
-      unsigned char s[4];
-    };
   
-    union Data object;
+  check_score();
   
-    object.a = score;
-    
-    for(int i=0; i<4; i++)  /// write score at adress 0
-      EEPROM.write(i, object.s[i]);
-        
-    for(int i=5; i<16; i++)      /// write name of the player
-      EEPROM.write(i, record.player_name[i-5]);
-      
-  }
-
   visible[current_menu] = 0; 
   current_menu = 6;     ///Game over
   
   if(!visible[current_menu])
     print_menu();  
-    
+
+  
+  print_over();
+  
   locked = 1;
   while(locked){
 
@@ -516,9 +488,11 @@ void change_menu(){
   if(current_menu == 1 && visible[current_menu] ){
 
     if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 0){
-      strcpy(record.player_name, "Player");
-      record.score = 0;
-      for (int i = 0 ; i < EEPROM.length() ; i++) {
+      for(short int i = 0; i<3; i++){
+        strcpy(record[i].player_name, "Player    ");
+        record[i].score = 0;
+      }
+      for (short int i = 0 ; i < EEPROM.length() ; i++) {
         EEPROM.write(i, 0);
       }
       print_menu();
@@ -672,6 +646,26 @@ void menu_navigate(){
         ymoved = 1;
     }else
     if(current_menu == 1){
+
+      if(yVal < bottomLimit){
+        printedHighScore --;
+        if(printedHighScore < 0)
+          printedHighScore = 0;
+        ymoved = 1;
+      }else{
+        printedHighScore ++;
+        if(printedHighScore > 2)
+          printedHighScore = 2;
+        ymoved = 1;
+      }
+     lcd.setCursor(0,0);
+     lcd.print(" ");
+     lcd.print(record[printedHighScore].player_name);
+     lcd.print(" ");
+     lcd.print(record[printedHighScore].score);
+     lcd.print(" ");
+     lcd.print(" ");
+     lcd.print(" ");
       /// scroll trought highscoresS
     }
     
@@ -716,17 +710,30 @@ void setup() {
   };
 
   union Data object;
-  
-  for(int i=0; i<4; i++)
-    object.s[i] = EEPROM.read(i);
-  
-  record.score = object.a;
-  
-  for(int i=5; i<16; i++)
-    record.player_name[i-5] = (char)EEPROM.read(i);
+  int adress = 0;
+  for(int j=0; j<3; j++){
+    
+    for(int i=0; i<4; i++){
+      object.s[i] = EEPROM.read(adress);
+      adress++;
+    }
 
-  if(strlen(record.player_name) < 1)
-    strcpy(record.player_name, "Player");
+    adress++; /// i have spaces between variables
+    
+    record[j].score = object.a;
+    
+    for(int i=5; i<16; i++){
+      record[j].player_name[i-5] = (char)EEPROM.read(adress);
+      adress++;
+    }
+
+  
+    if(strlen(record[j].player_name) < 1)
+      strcpy(record[j].player_name, "Player    ");
+    Serial.print(record[j].player_name);
+    Serial.println(" DA");
+  }
+  adress++; /// i have spaces between variables
 }
 
 void loop() {
