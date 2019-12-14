@@ -88,7 +88,7 @@ void set_player_name(){
   name_aux = (char*)malloc(11*sizeof(char));
   poz_in_name = 0;
   
-  for(int i=0; i<10; i++)
+  for(int i=0; i<11; i++)
     name_aux[i] = ' ';
     
   name_aux[10] = '\0';
@@ -332,7 +332,6 @@ void stop_game(){
 }
 
 void reset_game(){
-  pause = !pause;
   last_road_scroll = 0;
   score = 0;
   game_speed = 800;
@@ -343,11 +342,14 @@ void reset_game(){
   lastLives = lives;
   offset = road_length;
   last_road_scroll = 0;
+  delete_prev_car();
+  reset_car_pos();
   lc.clearDisplay(0);// clear screen
 }
 
 void play_real_game(){
 
+  quit = 0;
   currentLevel = startingLevel;
   currentLives = lives;
   hit_car;
@@ -436,28 +438,33 @@ void play_real_game(){
       menu_navigate();
       check_btn(change_menu);
     }
+    Serial.println("Mda");
   }
-  
+  Serial.println("Mda");
   check_score();
   
-  visible[current_menu] = 0; 
-  current_menu = 6;     ///Game over
-  
-  if(!visible[current_menu])
-    print_menu();  
-
-  
-  print_over();
-  
-  locked = 1;
-  while(locked){
-
-    xVal = analogRead(xAxis);
-    yVal = analogRead(yAxis);
-    menu_navigate();
-    check_btn(change_menu);
+  if(!quit){
+    visible[current_menu] = 0; 
+    current_menu = 6;     ///Game over
     
+    if(!visible[current_menu])
+      print_menu();  
+  
+    
+    print_over();
+    
+    locked = 1;
+    while(locked){
+  
+      xVal = analogRead(xAxis);
+      yVal = analogRead(yAxis);
+      menu_navigate();
+      check_btn(change_menu);
+      
+    }
   }
+  else
+  Serial.println("Ma-ta");
 }
 
 
@@ -546,11 +553,19 @@ void change_menu(){
       visible[current_menu] = 0;
       current_menu = 2;     ///start  
       reset_game();
+      pause_game();
       print_menu();
     }
     else{
-      
+      visible[current_menu] = 0;  
+      current_menu = 0;     /// principal
+      inGame = 0;
       /// Save & Exit
+      /// this is for exit from while
+      currentLives = 0;
+      quit = 1;
+      stop_game();
+      pause_game();
     }
   }
   
@@ -667,6 +682,19 @@ void menu_navigate(){
      lcd.print(" ");
      lcd.print(" ");
       /// scroll trought highscoresS
+    }else
+    if(current_menu == 7 ){
+      lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
+      lcd.print(" "); 
+      if(selectedPos[current_menu].l == 0 && selectedPos[current_menu].c == 0){
+        selectedPos[current_menu].l = 1;
+        selectedPos[current_menu].c = 0;
+        ymoved = 1;
+      }else{
+        selectedPos[current_menu].l = 0;
+        selectedPos[current_menu].c = 0;
+        ymoved = 1;
+      }
     }
     
     
@@ -730,10 +758,14 @@ void setup() {
   
     if(strlen(record[j].player_name) < 1)
       strcpy(record[j].player_name, "Player    ");
+      
     Serial.print(record[j].player_name);
     Serial.println(" DA");
+    Serial.print(record[j].score);
+    Serial.println(" DA");
+    
+    adress++; /// i have spaces between variables
   }
-  adress++; /// i have spaces between variables
 }
 
 void loop() {

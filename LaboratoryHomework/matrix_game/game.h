@@ -6,6 +6,7 @@ LedControl lc = LedControl(12, 11, 10, 1); //DIN, CLK, LOAD, No. DRIVER
 // pin 10 is connected to LOAD pin 12
 // 1 as we are only using 1 MAX7219
 
+short int quit = 0;
 
 /// For setings menu
 short int startingLevel = 1; /// INITIAL
@@ -276,21 +277,30 @@ void print_over(){
 }
 
 short int find_low_score(){
-
-  if(record[0].score == record[1].score && record[1].score == record[2].score)
-    return 0;
-  
-  short int mx =  max(record[0].score, max(record[1].score, record[2].score));
   short int poz;
-  if(score <= record[1].score)
+  if(record[0].score == record[1].score && record[1].score == record[2].score  && record[2].score == 0)
     return 0;
+    
+  if(record[1].score == record[2].score  && record[2].score == 0)
+    return 1;
+  
+  if(score <= record[1].score)
+    poz =  2;
   else
   if(score <= record[0].score)
-    return 1;
+    poz =  1;
   else
-    return 2;
-}
+    poz =  0;
+  Serial.print("Poz: ");
+  Serial.println(poz);
+  
+  for(short int i = 2; i>poz; i-- ){
+    record[i].score = record[i-1].score;
+    strcpy(record[i].player_name, record[i-1].player_name);
+  }
 
+  return poz;
+}
 
 void check_score(){
 
@@ -308,9 +318,10 @@ void check_score(){
       };
     
       union Data object;
-    
       object.a = score;
+      
       short int adress;
+      
       if(poz == 0)
         adress = 0;
       else
@@ -318,16 +329,38 @@ void check_score(){
         adress = 17;
       else
         adress = 34;
+  
+      if(adress == 34){
+        for(int i=0; i<4; i++){  /// write score at adress 
+          EEPROM.write(adress, object.s[i]);
+          adress++;
+        }
+        adress ++;
+        for(int i=5; i<16; i++){      /// write name of the player
+          EEPROM.write(adress, record[poz].player_name[i-5]);
+          adress++;
+        }
+      }else{
+       for(int j=0; j<3; j++){
+        
+          object.a = record[j].score;
+          
+          for(int i=0; i<4; i++){
+            EEPROM.write(adress, object.s[i]);
+            adress++;
+          }
       
-      for(int i=0; i<4; i++){  /// write score at adress 0
-        EEPROM.write(adress, object.s[i]);
-        adress++;
+          adress++; /// i have spaces between variables
+                    
+          for(int i=5; i<16; i++){
+            EEPROM.write(adress, record[j].player_name[i-5]);
+            adress++;
+          }
+          
+          adress++; /// i have spaces between variables
       }
-      
-      for(int i=5; i<16; i++){      /// write name of the player
-        EEPROM.write(adress, record[poz].player_name[i-5]);
-        adress++;
-      }
+    }
+    
   }
   
 }
