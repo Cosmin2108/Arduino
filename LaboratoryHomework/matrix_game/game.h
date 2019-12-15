@@ -22,7 +22,9 @@ struct Car{
   short int left_coord = 3;
   short int car_length = 4;
   short int car_width = 3;
-  
+  bool car_State = 1;
+  unsigned long long int lastPrintCar = 0;
+  short int interval_print_car = 70;
   bool car[8][8]= {
                   {0, 0, 0, 0, 0, 0, 0, 0},
                   {0, 0, 0, 0, 0, 0, 0, 0},
@@ -46,6 +48,7 @@ struct Car{
                  };
 
 }car;
+
 
 /// Score record
 struct Record{
@@ -150,7 +153,7 @@ void print_car(){
   for(int i = 0; i < 8; i++){
     for(int j = 0; j< 8; j++){
       if(car.car[i][j])
-        lc.setLed(0, i, j, HIGH);
+        lc.setLed(0, i, j, car.car_State * car.car[i][j]);
     }
   }
 }
@@ -173,7 +176,7 @@ void reset_car_pos(){
 
 
 bool move_car(int dir){
-
+  car.lastPrintCar = 0;
   delete_prev_car();
   
   int i, j;
@@ -362,5 +365,30 @@ void check_score(){
     }
     
   }
-  
+}
+
+void stop_game(){
+  locked = 0;
+  last_road_scroll = 0;
+  score = 0;
+  game_speed = 800;
+  car.lastPrintCar = 0;
+  lc.clearDisplay(0);// clear screen
+}
+
+void reset_game(){
+  last_road_scroll = 0;
+  score = 0;
+  game_speed = 800;
+  currentLevel = startingLevel;
+  currentLives = lives;
+  printed = 1;
+  lastLevel = currentLevel;
+  lastLives = lives;
+  offset = road_length;
+  last_road_scroll = 0;
+  delete_prev_car();
+  reset_car_pos();
+  car.lastPrintCar = 0;
+  lc.clearDisplay(0);// clear screen
 }

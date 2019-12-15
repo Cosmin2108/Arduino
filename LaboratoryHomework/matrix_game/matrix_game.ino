@@ -309,7 +309,7 @@ void print_menu(){
     selectedPos[current_menu].c = 0;
     selectedPos[current_menu].l = 1;
     lcd.setCursor(1, 0);
-    lcd.print("Exit & Save");
+    lcd.print("Exit & !Save");
     lcd.setCursor(1, 1);
     lcd.print("Replay");
     lcd.setCursor(9, 1);
@@ -321,30 +321,6 @@ void print_menu(){
     
   }
     
-}
-
-void stop_game(){
-  locked = 0;
-  last_road_scroll = 0;
-  score = 0;
-  game_speed = 800;
-  lc.clearDisplay(0);// clear screen
-}
-
-void reset_game(){
-  last_road_scroll = 0;
-  score = 0;
-  game_speed = 800;
-  currentLevel = startingLevel;
-  currentLives = lives;
-  printed = 1;
-  lastLevel = currentLevel;
-  lastLives = lives;
-  offset = road_length;
-  last_road_scroll = 0;
-  delete_prev_car();
-  reset_car_pos();
-  lc.clearDisplay(0);// clear screen
 }
 
 void play_real_game(){
@@ -391,7 +367,7 @@ void play_real_game(){
       }
 
       print_car();
-
+      
       lcd.setCursor(7, 0);
       lcd.print(score);
       
@@ -404,6 +380,14 @@ void play_real_game(){
        print_car();
        last_road_scroll = 0;
     }
+    
+//    if(millis() - car.lastPrintCar > car.interval_print_car){
+//      Serial.println("Print car");
+//      car.car_State = !car.car_State;
+//      car.lastPrintCar = millis();
+//    }
+//    
+//    print_car();
 
     lcd.setCursor(15, 1);
     lcd.print(currentLevel);
@@ -438,9 +422,8 @@ void play_real_game(){
       menu_navigate();
       check_btn(change_menu);
     }
-    Serial.println("Mda");
   }
-  Serial.println("Mda");
+
   check_score();
   
   if(!quit){
@@ -450,7 +433,6 @@ void play_real_game(){
     if(!visible[current_menu])
       print_menu();  
   
-    
     print_over();
     
     locked = 1;
@@ -463,8 +445,6 @@ void play_real_game(){
       
     }
   }
-  else
-  Serial.println("Ma-ta");
 }
 
 
@@ -491,9 +471,7 @@ void change_menu(){
         current_menu = 3;     ///Setings   
       }
       
-
   if(current_menu == 1 && visible[current_menu] ){
-
     if(selectedPos[current_menu].l == 1 && selectedPos[current_menu].c == 0){
       for(short int i = 0; i<3; i++){
         strcpy(record[i].player_name, "Player    ");
@@ -568,11 +546,9 @@ void change_menu(){
       pause_game();
     }
   }
-  
 }
 
 void menu_navigate(){
-  
   /// X Axis
   if(!xmoved && (xVal < bottomLimit || xVal > topLimit)){
     if(current_menu == 0 && selectedPos[current_menu].l == 1){
@@ -646,7 +622,6 @@ void menu_navigate(){
 
   /// Y Axis
   if(!ymoved && (yVal < bottomLimit || yVal > topLimit)){
-   
     if(current_menu == 0 || current_menu == 3){
         lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
         lcd.print(" ");                                                            ///delete last position
@@ -695,11 +670,8 @@ void menu_navigate(){
         selectedPos[current_menu].c = 0;
         ymoved = 1;
       }
-    }
-    
-    
+    } 
   }
-
 
   if(ymoved || xmoved){
     lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
@@ -721,7 +693,7 @@ void setup() {
 
    // the zero refers to the MAX7219 number, it is zero for 1 chip
   lc.shutdown(0, false); // turn off power saving, enables display
-  lc.setIntensity(0, 6); // sets brightness (0~15 possible values)
+  lc.setIntensity(0, 8); // sets brightness (0~15 possible values)
   lc.clearDisplay(0);// clear screen
   
   Serial.begin(9600);
