@@ -7,14 +7,15 @@ LedControl lc = LedControl(12, 11, 10, 1); //DIN, CLK, LOAD, No. DRIVER
 // 1 as we are only using 1 MAX7219
 
 short int quit = 0;
+const int buzz = 6;
 
 /// For setings menu
 short int startingLevel = 1; /// INITIAL
 
 ///For start display
-short int levels = 3;
+const int levels = 3;
 short int currentLevel = startingLevel;
-short int lives = 3;
+const int lives = 3;
 short int currentLives = lives;
 short int score = 0;
 
@@ -143,6 +144,10 @@ bool colision(){
     k--;
   }
 
+  if(hit){
+    tone(buzz, 2000, 150);
+  }
+
   return hit;
 
 }
@@ -181,12 +186,14 @@ bool move_car(int dir){
   
   int i, j;
   if(dir == -1 && car.left_coord - 1 <= 0 ){
+    tone(buzz, 2000, 150);
     delete_prev_car();
     reset_car_pos();
     return 1;
   }
   else
   if(dir == 1 && (car.left_coord + car.car_width -1 ) + 1 >= 7 ){
+    tone(buzz, 2000, 150);
     delete_prev_car();
     reset_car_pos();
     return 1;

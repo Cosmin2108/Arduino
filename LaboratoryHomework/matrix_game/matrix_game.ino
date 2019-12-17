@@ -700,6 +700,8 @@ void setup() {
   pinMode(pinSW, INPUT_PULLUP );
   pinMode(xAxis, INPUT);
   pinMode(yAxis, INPUT);
+  pinMode(buzz, OUTPUT);
+  
 
   lcd.begin(16, 2);
   analogWrite(VO, contrast);
