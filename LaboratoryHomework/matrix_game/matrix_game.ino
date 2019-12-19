@@ -2,6 +2,8 @@
 #include <EEPROM.h>
 #include "game.h"
 
+bool welcome_msg = 0;
+
 /// LCD Display pins
 const int RS = 8;
 const int enable = 13;
@@ -285,8 +287,10 @@ void print_menu(){
   if(current_menu == 6){    
     selectedPos[current_menu].c = 0;
     selectedPos[current_menu].l = 1;
-    lcd.setCursor(2, 0);
+    lcd.setCursor(1, 0);
     lcd.print("Game over!");
+    lcd.setCursor(12, 0);
+    lcd.print(score);
     lcd.setCursor(1, 1);
     lcd.print("Exit");
     lcd.setCursor(7, 1);
@@ -724,6 +728,19 @@ void setup() {
 
 void loop() {
 
+  if(!welcome_msg){
+    lcd.setCursor(0, 1);
+    lcd.print("Play Car Racing!");
+    lcd.setCursor(3,0);
+    lcd.print("Have fun!");
+    welcome_msg = 1;
+    for(int i = 3; i >= 0; i--){
+      lcd.setCursor(14, 0);
+      lcd.print(i);
+      delay(1000);
+    }
+  }
+  
   if(!visible[current_menu]){
     print_menu();
   }

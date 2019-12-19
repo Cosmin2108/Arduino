@@ -6,26 +6,26 @@ LedControl lc = LedControl(12, 11, 10, 1); //DIN, CLK, LOAD, No. DRIVER
 // pin 10 is connected to LOAD pin 12
 // 1 as we are only using 1 MAX7219
 
-short int quit = 0;
+bool quit = 0;
 const int buzz = 6;
 
 /// For setings menu
-short int startingLevel = 1; /// INITIAL
+int startingLevel = 1; /// INITIAL
 
 ///For start display
 const int levels = 3;
-short int currentLevel = startingLevel;
+int currentLevel = startingLevel;
 const int lives = 3;
-short int currentLives = lives;
-short int score = 0;
+int currentLives = lives;
+int score = 0;
 
 struct Car{
-  short int left_coord = 3;
-  short int car_length = 4;
-  short int car_width = 3;
+  int left_coord = 3;
+  int car_length = 4;
+  int car_width = 3;
   bool car_State = 1; /// optional
   unsigned long long int lastPrintCar = 0;
-  short int interval_print_car = 70;
+  int interval_print_car = 70; /// optional
   bool car[8][8]= {
                   {0, 0, 0, 0, 0, 0, 0, 0},
                   {0, 0, 0, 0, 0, 0, 0, 0},
@@ -54,29 +54,29 @@ struct Car{
 /// Score record
 struct Record{
   char player_name[11];
-  short int score;
+  int score;
 }record[3];
 
-short int printedHighScore = 0;
+int printedHighScore = 0;
 
 /// Menu setings
 char player_name[11] = "Player    ";
 char *name_aux;
-short int poz_in_name;
+int poz_in_name;
 
 long long int last_road_scroll = 0;
 float game_speed = 600/currentLevel;
-short int repeat = 2;
+int repeat = 2;
 bool pause = 0;
 bool hit_car;
 bool printed = 1;
-short int lastLevel = currentLevel;
-short int lastLives = lives;
+int lastLevel = currentLevel;
+int lastLives = lives;
 bool inGame = 0;
 
 /// For the game exit loop, set name loop and set lvl loop
 bool locked;
-const short int road_length = 57;
+const int road_length = 57;
  
 byte road[road_length][8]= {
                   {1, 0, 0, 0, 0, 0, 0, 1},
@@ -107,6 +107,66 @@ byte road[road_length][8]= {
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 1, 1, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 1, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 1, 0, 0, 0, 0, 1},
+                  {1, 1, 1, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 1, 1, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 1, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1}
+                 };  
+ 
+byte road2[road_length][8]= {
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 1, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 0, 0, 0, 1, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 1, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 1, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 1, 1, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 1, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 1, 1, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 1, 0, 0, 1},
                   {1, 0, 0, 0, 0, 1, 0, 1},
                   {1, 0, 0, 0, 0, 0, 1, 1},
@@ -119,7 +179,7 @@ byte road[road_length][8]= {
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 0, 0, 0, 1, 1, 0, 1},
+                  {1, 0, 0, 0, 0, 1, 0, 1},
                   {1, 0, 0, 0, 1, 1, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
@@ -138,7 +198,7 @@ byte road[road_length][8]= {
                   {1, 0, 0, 0, 0, 0, 0, 1}
                  };  
 
-short int offset = road_length;
+int offset = road_length;
 
 bool colision(){
   
@@ -146,7 +206,12 @@ bool colision(){
   int k = offset - 1;
   for(int i = 6; i >= 3 && !hit; i--){
     for(int j = car.left_coord; j< car.left_coord + car.car_width; j++){
+      if(currentLevel == 1){
         if(road[k][j] == 1 && road[k][j] == car.car[i][j])
+          hit = 1;
+      }
+      else
+        if(road2[k][j] == 1 && road2[k][j] == car.car[i][j])
           hit = 1;
     }
     k--;
@@ -266,7 +331,10 @@ bool print_road(){
   int k = offset;
   for(int i = 7; i >= 0 && k >= offset - 7; i--){
     for(int j = 0; j< 8; j++){
-      lc.setLed(0, i, j, road[k][j]);
+      if(currentLevel == 1)
+        lc.setLed(0, i, j, road[k][j]);
+      else
+        lc.setLed(0, i, j, road2[k][j]);
     }
 
     k--;
@@ -366,7 +434,6 @@ void check_score(){
             EEPROM.write(adress, record[j].player_name[i-5]);
             adress++;
           }
-          
           adress++; /// i have spaces between variables
       }
     }
