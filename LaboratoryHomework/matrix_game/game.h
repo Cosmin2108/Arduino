@@ -23,7 +23,7 @@ struct Car{
   short int left_coord = 3;
   short int car_length = 4;
   short int car_width = 3;
-  bool car_State = 1;
+  bool car_State = 1; /// optional
   unsigned long long int lastPrintCar = 0;
   short int interval_print_car = 70;
   bool car[8][8]= {
@@ -65,7 +65,7 @@ char *name_aux;
 short int poz_in_name;
 
 long long int last_road_scroll = 0;
-float game_speed = 800/currentLevel;
+float game_speed = 600/currentLevel;
 short int repeat = 2;
 bool pause = 0;
 bool hit_car;
@@ -76,9 +76,9 @@ bool inGame = 0;
 
 /// For the game exit loop, set name loop and set lvl loop
 bool locked;
-const short int road_length = 48;
+const short int road_length = 57;
  
-bool road[road_length][8]= {
+byte road[road_length][8]= {
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 1, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
@@ -101,18 +101,27 @@ bool road[road_length][8]= {
                   {1, 0, 1, 1, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 1, 0, 0, 0, 0, 1},
+                  {1, 1, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 1, 1, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 1, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 1, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 1, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 0, 0, 0, 0, 0, 0, 1},
-                  {1, 1, 1, 1, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 1, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 1, 0, 0, 0, 0, 1},
+                  {1, 1, 1, 1, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
+                  {1, 0, 0, 0, 1, 1, 0, 1},
+                  {1, 0, 0, 0, 1, 1, 0, 1},
+                  {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 0, 1},
                   {1, 0, 0, 0, 0, 0, 1, 1},
@@ -140,7 +149,6 @@ bool colision(){
         if(road[k][j] == 1 && road[k][j] == car.car[i][j])
           hit = 1;
     }
-
     k--;
   }
 
@@ -149,7 +157,6 @@ bool colision(){
   }
 
   return hit;
-
 }
 
 
@@ -244,7 +251,7 @@ bool print_road(){
     repeat = 3;
     currentLevel++;
     /// increase speed
-    game_speed = 750/currentLevel;
+    game_speed = 600/currentLevel;
     offset = road_length - 1; 
   }
 
@@ -288,11 +295,6 @@ void print_over(){
 
 short int find_low_score(){
   short int poz;
-  if(record[0].score == record[1].score && record[1].score == record[2].score  && record[2].score == 0)
-    return 0;
-    
-  if(record[1].score == record[2].score  && record[2].score == 0)
-    return 1;
   
   if(score <= record[1].score)
     poz =  2;
@@ -301,8 +303,6 @@ short int find_low_score(){
     poz =  1;
   else
     poz =  0;
-  Serial.print("Poz: ");
-  Serial.println(poz);
   
   for(short int i = 2; i>poz; i-- ){
     record[i].score = record[i-1].score;
@@ -378,15 +378,15 @@ void stop_game(){
   locked = 0;
   last_road_scroll = 0;
   score = 0;
-  game_speed = 800;
+  game_speed = 600;
   car.lastPrintCar = 0;
-  lc.clearDisplay(0);// clear screen
+  lc.clearDisplay(0);// clear matrix
 }
 
 void reset_game(){
   last_road_scroll = 0;
   score = 0;
-  game_speed = 800;
+  game_speed = 600;
   currentLevel = startingLevel;
   currentLives = lives;
   printed = 1;
@@ -397,5 +397,5 @@ void reset_game(){
   delete_prev_car();
   reset_car_pos();
   car.lastPrintCar = 0;
-  lc.clearDisplay(0);// clear screen
+  lc.clearDisplay(0);// clear matrix
 }

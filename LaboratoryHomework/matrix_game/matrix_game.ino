@@ -17,7 +17,6 @@ const int VO = 9;
 
 LiquidCrystal lcd(RS, enable, d4, d5, d6, d7);
 
-
 ///Joystick axis
 const int topLimit = 700;
 const int bottomLimit = 300;
@@ -40,7 +39,7 @@ struct Selected{
   short int l, c;
 };
 
-Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};    /// 0 =  principal menu, 1= high score, 2 = start,
+Selected selectedPos[] = { {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}};    /// (numbers are positions in array) 0 =  principal menu, 1= high score, 2 = start,
 /// 3 = settings, 4 = Set Name, 5= Set Level, 6 = Game over, 7 = Pause
 
 short int contrast = 360;
@@ -63,9 +62,7 @@ void check_btn(void (*f)()){
       }
     }
   }
-  
   lastButtonState = swState;
-
 }
 
 void exit_set_player_name(){
@@ -79,7 +76,7 @@ void exit_set_player_name(){
   current_menu = 3;
   lcd.noCursor();
   free(name_aux);
-  Serial.println(player_name);
+  //Serial.println(player_name);
 }
 
 void set_player_name(){
@@ -134,7 +131,6 @@ void set_player_name(){
         if(name_aux[poz_in_name] == ' ')
           name_aux[poz_in_name] = ' ';
         
-      Serial.println(name_aux);
       ymoved = 0;
 
     }
@@ -220,7 +216,6 @@ void set_start_level(){
 
     /// check btn with fct for exit from set_start_lvl as parameter
     check_btn(exit_start_lvl);
-
   }
 }
 
@@ -228,9 +223,7 @@ void print_menu(){
 
   lcd.clear();
   lcd.setCursor(0, 0);
-  Serial.println(current_menu);
   if(current_menu == 0){
-    
     lcd.setCursor((16 - strlen("HighScore"))/2, 0);
     lcd.print("HighScore");
     lcd.setCursor(1,1);
@@ -240,7 +233,6 @@ void print_menu(){
     visible[current_menu] = 1;
     lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
     lcd.print(">");
-    
   }else
   if(current_menu == 1){
      selectedPos[current_menu].c = 0;
@@ -255,10 +247,9 @@ void print_menu(){
      lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
      lcd.print(">");
      visible[current_menu] = 1;
-     
   }else
   if(current_menu == 2){
-         lcd.print(" Score ");
+     lcd.print(" Score ");
      lcd.print(score);
      
      lcd.setCursor(0,1);
@@ -272,7 +263,6 @@ void print_menu(){
           
   }else
   if(current_menu == 3){
-    
      lcd.print(" Name:");
      lcd.print(player_name);
      lcd.setCursor(0,1);
@@ -317,10 +307,8 @@ void print_menu(){
     visible[current_menu] = 1;
     lcd.setCursor(selectedPos[current_menu].c, selectedPos[current_menu].l);
     lcd.print(">");
-    visible[current_menu] = 1;
-    
+    visible[current_menu] = 1; 
   }
-    
 }
 
 void play_real_game(){
@@ -410,7 +398,7 @@ void play_real_game(){
     
     if(pause){
       visible[current_menu] = 0; 
-      current_menu = 7;     ///Pause
+      current_menu = 7;     ///Pause menu
       
       if(!visible[current_menu])
         print_menu(); 
@@ -428,7 +416,7 @@ void play_real_game(){
   
   if(!quit){
     visible[current_menu] = 0; 
-    current_menu = 6;     ///Game over
+    current_menu = 6;     ///Game over menu
     
     if(!visible[current_menu])
       print_menu();  
@@ -687,10 +675,7 @@ void menu_navigate(){
 
 }
 
-
 void setup() {
-  // put your setup code here, to run once:
-
    // the zero refers to the MAX7219 number, it is zero for 1 chip
   lc.shutdown(0, false); // turn off power saving, enables display
   lc.setIntensity(0, 8); // sets brightness (0~15 possible values)
@@ -733,12 +718,7 @@ void setup() {
     if(strlen(record[j].player_name) < 1)
       strcpy(record[j].player_name, "Player    ");
       
-    Serial.print(record[j].player_name);
-    Serial.println(" DA");
-    Serial.print(record[j].score);
-    Serial.println(" DA");
-    
-    adress++; /// i have spaces between variables
+    adress++; /// I have spaces between variables
   }
 }
 
