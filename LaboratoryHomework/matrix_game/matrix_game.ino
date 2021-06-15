@@ -48,18 +48,18 @@ short int contrast = 360;
 
 void check_btn(void (*f)()){
 
-  int swState = !digitalRead(pinSW); //If the button is presed, then the value is 0,  so I'll make it 1 
+  int swState = !digitalRead(pinSW); // If the button is presed, then the value is 0,  so I'll make it 1 
 
   if(lastButtonState != swState){
     lastDebounceTime = millis();
   }
 
-  if(millis() - lastDebounceTime > debounceDelay){
+  if(millis() - lastDebounceTime > debounceDelay){ /// If enough time has passed (debounceDelay) since the last change of state and it was not just a fluctuation
 
-    if(swState != buttonState){   ///if what i'm reading is different from buttonState
+    if(swState != buttonState){   /// If what i'm reading is different from buttonState
       buttonState = swState;
       
-      if(swState == 1){       /// make changes if what I'm reading is 1
+      if(swState == 1){       /// Make changes if what I'm reading is 1
         (*f)();
       }
     }
