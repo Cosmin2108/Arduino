@@ -8,6 +8,7 @@ Car Racing
 	-Joystick
 	-MAX7219 Driver
 	-Buzzer
+	-Arduino Uno
 
 ## Description:
 
